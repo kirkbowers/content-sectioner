@@ -31,13 +31,18 @@ The argument to the replacement rule methods is an array of options in this form
 Let's say you have a page, and you want every `h3` tag to mark the start of an inset area with a different background color.  The inset should end when an `h2` is found.  So the HTML produced by a content author might look something like this:
 
     <h1>Site title</h1>
-      <h2>Sub head</h2>
-        <p>Lorem ipsem....</p>
-        <h3>First big aside</h3>
-          <p>Aside ipsem...</p>
-      <h2>Another big sub head</h2>
+    
+    <h2>Sub head</h2>
+    
+    <p>Lorem ipsem....</p>
+    
+    <h3>First big aside</h3>
+    
+    <p>Aside ipsem...</p>
+    
+    <h2>Another big sub head</h2>
       
-What you want to have happen is you want to insert a `<div class="inset">` before each `h3`, then close that `div` upon the next `h2`.  The code would look like this in your theme:
+What you want to have happen is you want to insert a `<div class="inset">` before each `h3`, then close that `div` upon the next `h2` (or end of the content).  The code would look like this in your theme:
 
     <?php
     
@@ -58,25 +63,34 @@ The result would look like this when the page is viewed by a site visitor:
 
 
     <h1>Site title</h1>
-      <h2>Sub head</h2>
-        <p>Lorem ipsem....</p>
-        <div class="inset"><h3>First big aside</h3>
-          <p>Aside ipsem...</p>
-      </div><h2>Another big sub head</h2>
+    
+    <h2>Sub head</h2>
+    
+    <p>Lorem ipsem....</p>
+    
+    <div class="inset"><h3>First big aside</h3>
+    
+    <p>Aside ipsem...</p>
+    
+    </div><h2>Another big sub head</h2>
       
 Note that you don't have to provide any of the angle brackets for the tags to match, just the name of the tag (such as `'h3'`).  It will match even if there are attributes on the tags.  So, if the HTML were produced by a markdown compiler instead of the WordPress editor, it might look like this:
 
     ...
-        <h3 id="First-big-aside">First big aside</h3>
-          <p>Aside ipsem...</p>
-      <h2 id="Another-big-sub-head">Another big sub head</h2>
+    <h3 id="First-big-aside">First big aside</h3>
+    
+    <p>Aside ipsem...</p>
+    
+    <h2 id="Another-big-sub-head">Another big sub head</h2>
 
 It would still work, yielding:
 
     ...
-        <div class="inset"><h3 id="First-big-aside">First big aside</h3>
-          <p>Aside ipsem...</p>
-      </div><h2 id="Another-big-sub-head">Another big sub head</h2>
+    <div class="inset"><h3 id="First-big-aside">First big aside</h3>
+    
+    <p>Aside ipsem...</p>
+    
+    </div><h2 id="Another-big-sub-head">Another big sub head</h2>
 
 Suppose you want to give each inserted piece of markup a sequential attribute to target different sections with different styling in your CSS.  You can use the handlebar markup with the variable `i` to place sequential numbers into the `open_insert` and `close_insert` options:
 
@@ -94,9 +108,11 @@ Suppose you want to give each inserted piece of markup a sequential attribute to
 This would produce:
 
     ...
-        <div class="inset" id="inset-1"><h3 id="First-big-aside">First big aside</h3>
-          <p>Aside ipsem...</p>
-      </div><h2 id="Another-big-sub-head">Another big sub head</h2>
+    <div class="inset" id="inset-1"><h3 id="First-big-aside">First big aside</h3>
+    
+    <p>Aside ipsem...</p>
+    
+    </div><h2 id="Another-big-sub-head">Another big sub head</h2>
 
 Suppose you want to place the div only around the `h3` itself.  You can match a close tag by simply including the forward slash (note the `close_tag` and `close_policy`):
 
@@ -114,9 +130,11 @@ Suppose you want to place the div only around the `h3` itself.  You can match a 
 This would produce:
 
     ...
-        <div class="inset"><h3 id="First-big-aside">First big aside</h3></div>
-          <p>Aside ipsem...</p>
-      <h2 id="Another-big-sub-head">Another big sub head</h2>
+    <div class="inset"><h3 id="First-big-aside">First big aside</h3></div>
+    
+    <p>Aside ipsem...</p>
+    
+    <h2 id="Another-big-sub-head">Another big sub head</h2>
 
 ## Testing
 
