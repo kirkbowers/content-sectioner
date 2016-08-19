@@ -1,26 +1,113 @@
 <?php
 
-/*
+/**
 Plugin Name: Content Sectioner
 Plugin URI: http://kirkbowerssoftware.com
-Description: Provides a mechanism for theme developers to easily modify the content of a page based on regular expression markers.  This allows theme consumers to create content in one long continuous stream that later is modified to insert sections, backgrounds, or what have you.
+Description: Provides a mechanism for theme developers to easily modify the content of a page based on tag markers.  This allows theme consumers to create content in one long continuous stream that later is modified to insert sections, backgrounds, or what have you.
 Version: 0.1.1
 Author: Kirk Bowers
 Author URI: http://kirkbowers.com
 license: GPLv2
 */
 
-
+/**
+ * Provides a mechanism for WordPress theme developers to easily modify the content of an HTML page based on tag markers.  
+ *
+ * Content is filtered by a sequence of replacement rules.  Rules tell the filter how
+ * to match a block of HTML, what HTML code to insert relative to the matched block,
+ * and where the new code is to be inserted.
+ *
+ * A block is defined by an opening match and optionally a closing match.  If only an
+ * opening is provided, the block is only the tag matched.  If both an opening and closing
+ * are provided, the block includes everything from the opening match to the closing 
+ * match.
+ * 
+ * To make that concrete, consider an `h2` element:
+ *
+ *     <h2>My Heading</h2>
+ *
+ * The block for a rule matching only the opening `'h2'` is strictly the opening tag:
+ *
+ *     <h2>
+ *
+ * Whereas the block for a rule matching the opening `'h2'` and the closing `'/h2'` 
+ * contains the entire heading, including the text "My Heading".
+ *
+ * The replacement rules are added to the content sectioner by calling the `replace_*` methods.  The rules are run in the order they are added.  The only difference between the different replace methods is where within the content the current and next search are performed.
+ *
+ * @author Kirk Bowers <kirk@kirkbowers.com>
+ */
 class ContentSectioner {
+  /**
+   * Creates a new instance with no replacement rules.
+   *
+   * The constructor will assume that this class is being used inside of WordPress.
+   * So, by default, a filter on `the_content` is automatically placed for you upon
+   * instantiation.  To disable this behavior, pass `false` to the constructor.
+   *
+   * @param $inside_wp Whether or not the class is being used inside of WordPress.  If
+   *    `true` (the default), a filter hook on `the_content` will be added automatically.
+   */
   function __construct($inside_wp = true) {
-    $this->rules = array();
-    
     if ($inside_wp) {
       add_filter('the_content', array($this, 'go'));
     }
   }
   
-  private function merge_defaults($opts) {
+  // The array of replacement rules.  It should not be manipulated directly, but rather
+  // rules should be added via the `add_rule` method.
+  private $rules = array();
+  
+  protected function add_rule($when, $opts) {
+    $opts['when'] = $when;
+    
+    $opts = $this->merge_defaults($opts);
+  
+    $this->rules[] = $opts;  
+  }
+  
+  /**
+   * Takes the supplied replacement rule and fills in defaults for values not supplied.
+   *
+   * A replacement rule, as provided to any of the `replace_*` methods, is an array 
+   * with certain expected option key values.  Those keys that may be supplied, 
+   * their default values, and the affect each option has on how a replacement rule
+   * does its job, are:
+   * 
+   * - `open_tag` (required, unless `open_regex` is provided) The tag to be matched to 
+   *   fire this rule.  It is specified as
+   *   a simple string without the angle brackets.  For example, `'h2'` matches a second
+   *   level heading tag.  To match a close tag, include the leading forward slash (eg.
+   *   `'/h2'` to match closing a second level heading).
+   * - `open_insert` (default: the empty string `''`) The HTML to insert when this rule is fired at the 
+   *   opening of the matched block.
+   * - `open_policy` (default: `'replace'`) How the `open_insert` text should be inserted 
+   *   into the content.  The choices are:
+   *   - `'replace'` to completely replace the opening match and start the next search at the end of the replacement text
+   *   - `'before'` to insert the text just before the opening match and start the next search at the end of the _opening match_ (excluding the opening match from the next search in order to protect against infinite loops).
+   *   - `'after'` to insert the text just after the opening match and start the next search at the end of the inserted text
+   * - `open_regex` (default: `false`) If provided, it will override the `open_tag` value.  To be used if finer grain matching is needed.  A full regex string should be supplied, with opening and closing slashes (eg. `'/<hr.*>/'`)
+   * - `close_tag` (default: `false`) If provided, the tag to match to serve as the end of
+   *   the matched block.  If the tag specified is not encountered, the end of the content
+   *   will serve as a match.
+   * - `close_insert` (default: the empty string `''`) The HTML to insert at the 
+   *   closing of the matched block.
+   * - `close_policy` (default: `'replace'`) How the `close_insert` text should be inserted 
+   *   into the content.  The choices are:
+   *   - `'replace'` to completely replace the closing match and start the next search at the end of the replacement text
+   *   - `'before'` to insert the text just before the closing match and start the next search at the end of the _inserted text_ (leaving the closing match available to be matched as the opening of the next rule)
+   *   - `'after'` to insert the text just after the closing match and start the next search at the end of the inserted text
+   * - `close_regex` (default: `false`) If provided, it will override the `close_tag` value.  To be used if finer grain matching is needed.  A full regex string should be supplied, with opening and closing slashes (eg. `'/<hr.*>/'`)
+   *
+   * @param $opts A replacement rule array that may need default values filled in.
+   * @return array A copy of the supplied replacement rule array with defaults filled in where
+   *   not overridden by the supplied params.
+   * @see \ContentSectioner::replace_first()
+   * @see \ContentSectioner::replace_next()
+   * @see \ContentSectioner::replace_all()
+   * @see \ContentSectioner::replace_remaining()
+   */
+  protected function merge_defaults($opts) {
     $default_opts = array(
       'open_insert' => '',
       'open_policy' => 'replace',
@@ -35,48 +122,90 @@ class ContentSectioner {
     return array_merge($default_opts, $opts);  
   }
   
+  /**
+   * Replace every block that matches the supplied rule. 
+   *
+   * Replace every block that matches starting at the beginning of the 
+   * content through to the end of the content.  The next search performed will be
+   * started at the beginning of the content.
+   *
+   * @param $opts An array with keys and values defining the replacement rule.
+   * @see \ContentSectioner::merge_defaults() for the expected keys and values
+   */
   function replace_all($opts) {
-    $opts['when'] = 'all';
-    $opts = $this->merge_defaults($opts);
-  
-    $this->rules[] = $opts;
+    $this->add_rule('all', $opts);
   }  
   
+  /**
+   * Replace every remaining block that matches the supplied rule found after the previous match. 
+   *
+   * Replace every block that matches starting where the previous replacement rule
+   * left off through to the end of the content.  The next search performed will be
+   * started at the beginning of the content.
+   *
+   * @param $opts An array with keys and values defining the replacement rule.
+   * @see \ContentSectioner::merge_defaults() for the expected keys and values
+   */
+  function replace_remaining($opts) {
+    $this->add_rule('remaining', $opts);
+  }  
+  
+  /**
+   * Replace the first block that matches the supplied rule. 
+   *
+   * Replace only the first block that matches starting at the beginning of the 
+   * content.  The next search performed will be
+   * started just after the last character of this replacement block.  Which character
+   * is deemed to be the "last character" depends on the replacement policy and 
+   * whether or not the rule provided a closing match.
+   *
+   * @param $opts An array with keys and values defining the replacement rule.
+   * @see \ContentSectioner::merge_defaults() for the expected keys and values
+   */
   function replace_first($opts) {
-    $opts['when'] = 'first';
-    $opts = $this->merge_defaults($opts);
-  
-    $this->rules[] = $opts;
+    $this->add_rule('first', $opts);
   }
 
+  /**
+   * Replace the next block that matches the supplied rule found after the previous match. 
+   *
+   * Replace only the next block that matches starting where the previous replacement rule
+   * left off.  The next search performed will be
+   * started just after the last character of this replacement block.  Which character
+   * is deemed to be the "last character" depends on the replacement policy and 
+   * whether or not the rule provided a closing match.
+   *
+   * @param $opts An array with keys and values defining the replacement rule.
+   * @see \ContentSectioner::merge_defaults() for the expected keys and values
+   */
   function replace_next($opts) {
-    $opts['when'] = 'next';
-    $opts = $this->merge_defaults($opts);
-  
-    $this->rules[] = $opts;
+    $this->add_rule('next', $opts);
   }
 
+  /**
+   * Applies all the replacement rule filters to the provided content.
+   *
+   * If you are using this class within WordPress, you will not need to call this method
+   * directly.  It will be fired for you at the `the_content` filter hook.
+   *
+   * @param string $content The content to be filtered.
+   * @return string The resulting filtered content.
+   */
   function go($content) {
-    $this->next_offset = 0;    
     $this->offset = 0;
     foreach ($this->rules as $opts) {
       if ($opts['when'] == 'first') {
-        // Reset the uber offset and the current offset
-        $this->next_offset = 0;    
+        // Reset the current offset
         $this->offset = 0;
         $content = $this->replace($content, $opts); 
-        // Advance the uber offset
-        $this->next_offset = $this->offset;     
       } else if ($opts['when'] == 'next' ) {  
-        if ($this->next_offset >= 0) {
-          // Set the current offset to the uber
-          $this->offset = $this->next_offset;
+        if ($this->offset >= 0) {
           $content = $this->replace($content, $opts);      
-          // Advance the uber offset
-          $this->next_offset = $this->offset;     
         }
-      } else if ($opts['when'] == 'all' ) {
-        $this->offset = 0;
+      } else if (($opts['when'] == 'all') || ($opts['when'] == 'remaining')) {
+        if ($opts['when'] == 'all') {
+          $this->offset = 0;
+        }
         $i = 1;
         while ($this->offset >= 0) {
           // This takes advantage of PHP's copy on modify feature.  The original
@@ -88,7 +217,10 @@ class ContentSectioner {
           $content = $this->replace($content, $occurance_opts);
             
           $i += 1;
-        }      
+        }
+        
+        // Reset to the beginning
+        $this->offset = 0;  
       }
     }
     

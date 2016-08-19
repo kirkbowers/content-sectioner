@@ -2,3 +2,4 @@ bin
 vendor
 byhand.php
 *.phar
+docs

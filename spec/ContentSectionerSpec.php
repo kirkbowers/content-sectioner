@@ -511,6 +511,45 @@ EOF;
       $this->go($before)->shouldBe($after);
     }
 
+    function it_does_remaining()
+    {
+      $before = <<<EOF
+blah
+<hr>
+blech
+foo
+<hr>      
+horf
+<hr>
+yucky
+EOF;
+
+      $after = <<<EOF
+blah
+<hr class="first">
+blech
+foo
+<hr class="remaining">      
+horf
+<hr class="remaining">
+yucky
+EOF;
+    
+      $this->replace_first(array(
+        'open_tag' => 'hr',
+        'open_insert' => '<hr class="first">',
+        'open_policy' => 'replace'
+      ));
+      
+      $this->replace_remaining(array(
+        'open_tag' => 'hr',
+        'open_insert' => '<hr class="remaining">',
+        'open_policy' => 'replace'
+      ));
+
+      $this->go($before)->shouldBe($after);
+    }
+
     function it_does_arounds_and_closes_at_end()
     {
       $before = <<<EOF
