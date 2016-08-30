@@ -4,7 +4,7 @@
 Plugin Name: Content Sectioner
 Plugin URI: http://kirkbowerssoftware.com
 Description: Provides a mechanism for theme developers to easily modify the content of a page based on tag markers.  This allows theme consumers to create content in one long continuous stream that later is modified to insert sections, backgrounds, or what have you.
-Version: 0.1.1
+Version: 0.1.2
 Author: Kirk Bowers
 Author URI: http://kirkbowers.com
 license: GPLv2
@@ -98,6 +98,9 @@ class ContentSectioner {
    *   - `'before'` to insert the text just before the closing match and start the next search at the end of the _inserted text_ (leaving the closing match available to be matched as the opening of the next rule)
    *   - `'after'` to insert the text just after the closing match and start the next search at the end of the inserted text
    * - `close_regex` (default: `false`) If provided, it will override the `close_tag` value.  To be used if finer grain matching is needed.  A full regex string should be supplied, with opening and closing slashes (eg. `'/<hr.*>/'`)
+   * - 'close_strict' (default: 'false') If false, the end of the content will serve
+   *   as a match for the close tag or regex if no exact match is found.  If true, the
+   *   replacement rule will not fire unless a strict match is found.
    *
    * @param $opts A replacement rule array that may need default values filled in.
    * @return array A copy of the supplied replacement rule array with defaults filled in where
@@ -116,7 +119,8 @@ class ContentSectioner {
       'close_insert' => '',
       'close_policy' => 'replace',
       'close_tag' => false,
-      'close_regex' => false
+      'close_regex' => false,
+      'close_strict' => false
     );
     
     return array_merge($default_opts, $opts);  
@@ -238,7 +242,7 @@ class ContentSectioner {
       if ($regex[0] == '/') {
         $regex = '\\' . $regex;
       }
-      return '/<' . $regex . '(>|\\/>|\s[^>]*>)/';    
+      return '/<' . $regex . '(>|\\/>|\s[^>]*>)/i';    
     } else {
       return false;
     }
@@ -294,8 +298,11 @@ class ContentSectioner {
       
         } else {
           // We've fallen off the end
-          $content = $maybe_content . $opts['close_insert'];  
-          $this->offset = -1;  
+          // Go ahead and count this as a match, but only if we strict isn't true
+          if (! $opts['close_strict']) {
+            $content = $maybe_content . $opts['close_insert'];  
+            $this->offset = -1;
+          }
         }
       } else {
         $content = $maybe_content;

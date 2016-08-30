@@ -27,6 +27,7 @@ The argument to the replacement rule methods is an array of options in this form
       'close_insert' => '',
       'close_policy' => 'replace',
       'close_tag' => false,
+      'close_strict' => false,
     );
     
 ## Examples
@@ -141,7 +142,7 @@ This would produce:
 
 ## Testing
 
-There are a few tests written for the plugin in PHPSpec.  They aren't exhaustive by any means, but they do provide some confidence that the most common use cases work.
+There are several tests written for the plugin in PHPSpec.  They aren't quite exhaustive, but they do provide a good cross section of the most common use cases work.
 
 To run the specs, you first need to install PHPSpec using `composer`.  In the project root directory, run:
 
