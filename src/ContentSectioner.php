@@ -315,4 +315,31 @@ class ContentSectioner {
     return $content;
   }
 
+  /**
+   * Provide instructions to the content author which elements on the page will trigger
+   * the sectioning.
+   *
+   * @param $slug The slug of the page for which instructions 
+   *    should appear while being edited.
+   * @param $instructions The instructions to provide.  It is quasi-HTML.  It will be
+   *    surrounded by a `<p>` and `</p>` for you, so if you need additional paragraphs,
+   *    you can close the implied `<p>` and re-open it for the implied closing tag.
+   */
+  static function provide_instructions($slug, $instructions) {
+    add_action('admin_notices', function() use ($slug, $instructions) {
+      global $post;
+
+      if ($post->post_name == $slug) {
+?>
+  <div class="notice notice-info is-dismissible">
+    <h2>Instructions</h2>
+    <p>
+      <?php echo $instructions ?>
+    </p>
+  </div>
+
+<?php
+      }
+    });
+  }
 }

@@ -140,6 +140,17 @@ This would produce:
     
     <h2 id="Another-big-sub-head">Another big sub head</h2>
 
+## Providing Instructions
+
+Since content sectioning happens at certain magic landmarks (like `h2` tags), it helps to instruct content authors which landmarks are the ones that do the magic.  For example, if you are inserting a blue background behind everthing from the first Heading 3 to the next Heading 2, you should let content authors that's how to indicate where they want the blue background to occur.
+
+You can do this by calling the static method `ContentSectioner::provide_instructions`, ideally in `functions.php`, providing the slug of the page on which the sectioning rules
+are applied, and the instructions:
+
+    ContentSectioner::provide_instructions('about', "
+      A blue background will be created behind everything from the first Heading 3 to
+      the next Heading 2");
+
 ## Testing
 
 There are several tests written for the plugin in PHPSpec.  They aren't quite exhaustive, but they do provide a good cross section of the most common use cases work.

@@ -413,7 +413,7 @@ EOF;
 EOF;
 
       $this->replace_first(array(
-        'open_regex' => '/^/',
+        'open_regex' => '/./',
         'open_insert' => '<div>',
         'open_policy' => 'before',
         'close_tag' => 'h1',
