@@ -4,3 +4,5 @@ byhand.php
 *.phar
 docs
 util/dist.sh
+tmp
+*.zip
