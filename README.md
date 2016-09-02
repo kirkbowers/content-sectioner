@@ -1,7 +1,6 @@
 # content-sectioner
-A WordPress developer plugin that makes it easy to break one long piece of content into sections.
 
-It is currently in development... coming soon!
+Content Sectioner is a developer plugin for WordPress that makes it easy to insert formatting markup (div and img tags) into long pieces of content.
 
 ## The Motivation
 
