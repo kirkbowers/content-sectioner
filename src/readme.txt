@@ -88,6 +88,22 @@ The plugin may be used either as a conventional plugin, or since it is only one 
 1. Download Content Sectioner
 2. Either concatenate the contents of the `ContentSectioner.php` file into your `functions.php` file, or place it in your theme folder and `require` it when needed
 
+== Frequently Asked Questions ==
+
+= Is this utility unit tested? =
+
+Yes.  The plugin is tested with PHPSpec.  
+The original source for this plugin lives on github at [github.com/kirkbowers/content-sectioner](https://github.com/kirkbowers/content-sectioner) (the wordpress.org `svn` repo is used strictly for distribution).  
+
+To run the specs, you first need to install PHPSpec using `composer`.  In the project root directory, run:
+
+    util/install.sh
+    
+Then, once that's in place, you can run the tests by running:
+
+    util/spec.sh
+
+
 == Screenshots ==
 
 1. This blue inset was created by the code sample given in "Description >> A concrete example"
@@ -98,16 +114,9 @@ The plugin may be used either as a conventional plugin, or since it is only one 
 = 1.0.0 =
 * Initial release
 
-== Testing ==
+== Upgrade Notice ==
 
-The plugin is tested with PHPSpec.  The original source for this plugin lives on github at [github.com/kirkbowers/content-sectioner](https://github.com/kirkbowers/content-sectioner) (the wordpress.org `svn` repo is used strictly for distribution).  
-
-To run the specs, you first need to install PHPSpec using `composer`.  In the project root directory, run:
-
-    util/install.sh
-    
-Then, once that's in place, you can run the tests by running:
-
-    util/spec.sh
+= 1.0.0 =
+Initial release, nothing to upgrade!
 
 

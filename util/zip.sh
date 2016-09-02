@@ -3,6 +3,7 @@
 mkdir -p tmp/content-sectioner
 
 cp -r src/* tmp/content-sectioner
+cp assets/* tmp/content-sectioner
 
 cd tmp
 zip -r content-sectioner content-sectioner
