@@ -329,7 +329,7 @@ class ContentSectioner {
     add_action('admin_notices', function() use ($slug, $instructions) {
       global $post;
 
-      if ($post->post_name == $slug) {
+      if ($post && ($post->post_name == $slug)) {
 ?>
   <div class="notice notice-info is-dismissible">
     <h2>Instructions</h2>
