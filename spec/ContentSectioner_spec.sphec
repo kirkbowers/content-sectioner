@@ -1,0 +1,41 @@
+// This is a total stub to pretend we are in the WordPress ecosystem
+if (!function_exists('add_filter')) {
+  function add_filter() {
+    // no-op
+  }
+}
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+
+specify ContentSectioner
+  describe go
+    before
+      @cs = new ContentSectioner;
+    
+    it finds a simple case of just the tag and angle brackets
+      $before = <<<EOF
+Some stuff
+<h1>A header</h1>
+<p>Bacon ipsem</p>
+<h2>A subheader</h2>
+EOF;
+
+      $expected = <<<EOF
+Some stuff
+<div><h1>A header</h1>
+<p>Bacon ipsem</p>
+</div><h2>A subheader</h2>
+EOF;
+
+      @cs->replace_all(array(
+        'open_tag' => 'h1',
+        'open_insert' => '<div>',
+        'open_policy' => 'before',
+        'close_tag' => 'h2',
+        'close_insert' => '</div>',
+        'close_policy' => 'before'
+      ));
+
+      expect(@cs->go($before))->to_be($expected);
+    

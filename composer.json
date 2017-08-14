@@ -1,6 +1,13 @@
 {
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/kirkbowers/sphec"
+        }
+    ],
     "require-dev": {
-        "phpspec/phpspec": "~2.0"
+        "phpspec/phpspec": "~2.0",
+        "kirkbowers/sphec": ">=0.2.2"
     },
     "config": {
         "bin-dir": "bin"

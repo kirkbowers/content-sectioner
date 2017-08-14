@@ -4,7 +4,7 @@
 Plugin Name: Content Sectioner
 Plugin URI: http://kirkbowers.com/plugins/content-sectioner
 Description: Provides a mechanism for theme developers to easily modify the content of a page based on tag markers.  This allows theme consumers to create content in one long continuous stream that later is modified to insert sections, backgrounds, or what have you.
-Version: 1.0.0
+Version: 1.0.1
 Author: Kirk Bowers
 Author URI: http://kirkbowers.com
 license: GPLv2
